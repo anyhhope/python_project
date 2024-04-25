@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-
-from app.api import router
+import uvicorn
+from query.router import router as query_router
 
 app = FastAPI(
     title="Fast API service",
@@ -11,4 +11,7 @@ app = FastAPI(
     },
 )
 
-app.include_router(router)
+app.include_router(query_router)
+
+if __name__== "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8888)
