@@ -6,7 +6,7 @@ from data import get_connection
 import datetime
 
 # апи принимает данные используя методы контроллера
-router = APIRouter(prefix="/api/query", tags=["query"])
+router = APIRouter(prefix="/api/stream", tags=["stream"])
 
 @router.get("/health")
 async def health():
