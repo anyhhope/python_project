@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+# модельки для апи
 class Query(BaseModel):
-    status: str
+    state: str
     rtsp_src: str
