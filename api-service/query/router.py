@@ -12,14 +12,6 @@ router = APIRouter(prefix="/api/query", tags=["query"])
 async def health():
     return {"message": "Api-service is running"}
 
-# @router.post("/")
-# async def process(query: schema.Query,
-#                    db: PoolConnectionProxy = Depends(get_connection)):
-#     try:
-#         return query
-#     except ValueError as e:
-#         return {"detail": str(e)}
-
 @router.post("/")
 async def process(query: schema.Query,
     db_conn: PoolConnectionProxy = Depends(get_connection)):
