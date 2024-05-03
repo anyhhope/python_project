@@ -10,7 +10,7 @@ class Config(BaseSettings):
     kafka_port: int
     query_topic: str
     frames_topic: str
-    error_topic: str
+    state_topic: str
 
 
 cfg = Config()  

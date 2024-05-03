@@ -24,6 +24,7 @@ class AIOProducer():
 
     async def send(self, value) -> None:
         await self.start()
+        print("Producer started")
         try:
             await self.__producer.send(
                 topic=self.__produce_topic,
@@ -31,3 +32,4 @@ class AIOProducer():
             )
         finally:
             await self.stop()
+            print("Producer stopped")
