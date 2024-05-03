@@ -17,7 +17,8 @@ async def event_handler(value):
     Обработчик события. Как только мы получаем новое сообщение,
     будет отрабатывать данная функция
     """
-    print(f"Temperature: {value['temp']}, weather: {value['weather']}")
+    # print(f"Temperature: {value['temp']}, weather: {value['weather']}")
+    print(value)
 
 
 async def consume():

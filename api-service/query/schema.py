@@ -17,4 +17,5 @@ class Query(BaseModel):
 
 # сообщение кафки
 class Message(BaseModel):
-    message : str
+    id : str
+    rtsp_src: str

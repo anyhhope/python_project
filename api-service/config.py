@@ -19,6 +19,13 @@ class Config(BaseSettings):
     postgres_user: str
     postgres_password: str
 
+
+    kafka_host: str
+    kafka_port: int
+    query_topic: str
+    frames_topic: str
+    error_topic: str
+
     @property
     def build_postgres_dsn(self) -> str:
         res = (

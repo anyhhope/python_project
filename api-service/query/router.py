@@ -4,6 +4,8 @@ from asyncpg.pool import PoolConnectionProxy
 from asyncpg import Connection
 from data import get_connection
 import datetime
+from .producer import AIOWebProducer, get_query_producer
+
 
 # апи принимает данные используя методы контроллера
 router = APIRouter(prefix="/api/stream", tags=["stream"])
