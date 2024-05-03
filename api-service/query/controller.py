@@ -9,7 +9,9 @@ async def process(db_conn: PoolConnectionProxy, query: Query):
         rtsp_src = query.rtsp_src,
         state = query.state,
     )
-    return await insert_new_row(db_conn, query_row)
+    new_id: int = await insert_new_row(db_conn, query_row)
+    print(new_id)
+    return new_id
     
 
 # import методы из db

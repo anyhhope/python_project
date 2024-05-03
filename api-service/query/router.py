@@ -17,7 +17,7 @@ async def process(query: schema.Query,
     db_conn: PoolConnectionProxy = Depends(get_connection)):
 
     try:
-        await controller.process(db_conn, query)
-        return status.HTTP_201_CREATED
+        new_id: int = await controller.process(db_conn, query)
+        return {"id": str(new_id)}
     except ValueError as e:
         return {"detail": str(e)}

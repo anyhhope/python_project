@@ -14,3 +14,7 @@ class StateEnum(str, Enum):
 class Query(BaseModel):
     state: StateEnum
     rtsp_src: str
+
+# сообщение кафки
+class Message(BaseModel):
+    message : str
