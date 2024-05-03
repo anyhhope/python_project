@@ -1,4 +1,3 @@
-from . import models
 from asyncpg.pool import PoolConnectionProxy
 
 async def update_row(db: PoolConnectionProxy, row_id: int, new_state: str):
