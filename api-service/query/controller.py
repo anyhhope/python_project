@@ -3,7 +3,7 @@ from .schema import Query, Message
 from .models import QueryDto
 from .db import insert_new_row
 import asyncio
-from .producer import AIOWebProducer, get_query_producer
+from .producer import AIOProducer, get_query_producer
 
 # бизнес-логика, принимает данные пишет в бд и кафку
 async def process(db_conn: PoolConnectionProxy, query: Query):
@@ -19,7 +19,7 @@ async def process(db_conn: PoolConnectionProxy, query: Query):
 
 async def produce(message_to_produce: Message):
     try:
-        producer: AIOWebProducer = get_query_producer()
+        producer: AIOProducer = get_query_producer()
         await producer.send(value=message_to_produce)
         print(f"Message {message_to_produce} produced")
     except Exception as e:

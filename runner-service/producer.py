@@ -31,7 +31,3 @@ class AIOProducer():
             )
         finally:
             await self.stop()
-
-
-def get_query_producer() -> AIOProducer:
-    return AIOProducer(cfg, produce_topic=cfg.query_topic)
