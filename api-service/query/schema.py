@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from enum import Enum
 
 class StateEnum(str, Enum):
@@ -12,8 +12,8 @@ class StateEnum(str, Enum):
 
 # модельки для апи
 class Query(BaseModel):
-    state: StateEnum
-    rtsp_src: str
+    state: StateEnum = Field(examples=[StateEnum.STARTUP.value])
+    rtsp_src: str = Field(examples=["rtsp://fake.kerberos.io/stream"])
 
 # сообщение кафки
 class Message(BaseModel):

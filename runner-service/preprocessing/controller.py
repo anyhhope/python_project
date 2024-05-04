@@ -26,21 +26,23 @@ async def process(message_consumed: MessageConsume):
     cap = cv2.VideoCapture(data_object.rtsp_src)
     if not cap.isOpened():
         print("Error: Could not open RTSP stream.")
-        exit()
+        return
 
     state_message: MessageState = {"id": data_object.id, "state": StateEnum.STARTUP_PROCESS.value}
-    # asyncio.create_task(produce(state_message))
     await produce(state_message) 
     # КОРРЕКТНО ли так продьюсить стейт - как-то можно без await чтобы типо параллельно ?
     
+    window_name = f"RTSP Stream {data_object.id}"  # Уникальное имя окна для каждого видео
+    cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+
     while True:
         ret, frame = cap.read()
         if not ret:
             print('Error: No frame received from stream.')
             break
 
-        cv2.imshow("RTSP Stream", frame)
-
+        cv2.imshow(window_name, frame)
+        await asyncio.sleep(1) #нужен sleep видимо для передачи другому таску возможности его выполнить
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
@@ -48,6 +50,6 @@ async def process(message_consumed: MessageConsume):
         # consumer: AIOConsumer = get_runner_consumer()
         # await consumer.consume(controller.process)
     cap.release()
-    cv2.destroyAllWindows()
+    cv2.destroyWindow(window_name)
 
     return 

@@ -8,4 +8,5 @@ def get_runner_consumer() -> AIOConsumer:
 async def preprocess():
     consumer: AIOConsumer = get_runner_consumer()
     await consumer.consume(controller.process)
+    # КАК параллеьно обрабатывать......
     return
