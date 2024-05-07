@@ -18,13 +18,14 @@ class AIOProducer():
 
     async def start(self) -> None:
         await self.__producer.start()
+        print("Producer started")
 
     async def stop(self) -> None:
         await self.__producer.stop()
+        print("Producer stopped")
 
     async def send(self, value) -> None:
         await self.start()
-        print("Producer started")
         try:
             await self.__producer.send(
                 topic=self.__produce_topic,
@@ -32,4 +33,3 @@ class AIOProducer():
             )
         finally:
             await self.stop()
-            print("Producer stopped")

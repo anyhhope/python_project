@@ -25,11 +25,13 @@ async def produce(producer: AIOProducer, message_to_produce: MessageState):
 async def process_shut_state(msg: MessageState):
     msg_obg: MessageState = SimpleNamespace(**msg)
     process_model = processes_store.get(msg_obg.id)
-    if process_model:
+    if process_model and msg_obg.state == StateEnum.SHUTDOWN_PROCESS.value:
         custom_process = process_model.process
         custom_process.event.set()
+        producer_state : AIOProducer = get_state_producer() #todo create one producer outside
         print(f"Process {msg_obg.id} stopped")
-    else:
+        await produce(producer_state, {"id" : msg_obg.id, "state" : StateEnum.INACTIVE_OK}) #state_manager должен собрать со всех shutdown поэтому поле отправителья добавить
+    elif not process_model:
         raise ValueError(f"Process not found for id {msg_obg.id}")
     return
 
@@ -51,10 +53,6 @@ async def consume_shutdown():
         print(f"Consumer state stopped\n")
 
     return
-
-
-
-
 
 
 

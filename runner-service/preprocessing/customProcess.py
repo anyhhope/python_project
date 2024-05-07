@@ -1,6 +1,9 @@
 import cv2
 from multiprocessing import Process, Event
-from .schema import MessageConsume
+from .schema import MessageConsume, MessageState, StateEnum
+from producer import AIOProducer
+from config import cfg
+
 
 class CustomProcess(Process):
 
@@ -15,8 +18,10 @@ class CustomProcess(Process):
             print("Error: Could not open RTSP stream.")
             return
 
-        # state_message: MessageState = {"id": data_object.id, "state": StateEnum.STARTUP_PROCESS.value}
-        # await produce(state_message) 
+        # producer: AIOProducer = get_state_producer()
+        # state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value}
+        # await produce(producer, state_message) 
+        # producer.stop()
         
         window_name = f"RTSP Stream {self.msg.id}"  
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
