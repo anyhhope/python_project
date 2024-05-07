@@ -7,8 +7,7 @@ from .schema import MessageConsume
 from types import SimpleNamespace
 from .processes_store import processes_store
 from .processes_store import ProcessModel
-from .controller import CustomProcess
-
+from .customProcess import CustomProcess
 
 def deserializer(serialized):
     return json.loads(serialized)

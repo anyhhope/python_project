@@ -6,7 +6,9 @@ from types import SimpleNamespace
 import asyncio
 from multiprocessing import Process
 from multiprocessing import Event
-
+from aiokafka import AIOKafkaConsumer
+from .consumer import deserializer
+from .processes_store import processes_store
 
 def get_state_producer() -> AIOProducer:
     return AIOProducer(cfg, produce_topic=cfg.state_topic)
@@ -20,43 +22,39 @@ async def produce(producer: AIOProducer, message_to_produce: MessageState):
         print(f"An error occurred: {e}")
 
 
-class CustomProcess(Process):
+async def process_shut_state(msg: MessageState):
+    msg_obg: MessageState = SimpleNamespace(**msg)
+    process_model = processes_store.get(msg_obg.id)
+    if process_model:
+        custom_process = process_model.process
+        custom_process.event.set()
+        print(f"Process {msg_obg.id} stopped")
+    else:
+        raise ValueError(f"Process not found for id {msg_obg.id}")
+    return
 
-    def __init__(self, msg : MessageConsume):
-        Process.__init__(self)
-        self.event = Event()
-        self.msg = msg
- 
-    def run(self):
-        cap = cv2.VideoCapture(self.msg.rtsp_src)
-        if not cap.isOpened():
-            print("Error: Could not open RTSP stream.")
-            return
+async def consume_shutdown():
+    state_consumer = AIOKafkaConsumer(
+        cfg.state_topic,
+        bootstrap_servers=f'{cfg.kafka_host}:{cfg.kafka_port}',
+        value_deserializer=deserializer,
+    )
 
-        # state_message: MessageState = {"id": data_object.id, "state": StateEnum.STARTUP_PROCESS.value}
-        # await produce(state_message) 
-        
-        window_name = f"RTSP Stream {self.msg.id}"  
-        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+    await state_consumer.start()
+    print(f"Consumer state started\n")
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                print('Error: No frame received from stream.')
-                break
+    try:
+        async for msg in state_consumer:
+            await process_shut_state(msg.value)
+    finally:
+        await state_consumer.stop()
+        print(f"Consumer state stopped\n")
 
-            cv2.imshow(window_name, frame)
+    return
 
-            if self.event.is_set():
-                break
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-            
-        cap.release()
-        cv2.destroyWindow(window_name)
 
-#  process.event.set() - to stop loop -> stop process
+
 
 
 

@@ -1,7 +1,7 @@
 from typing import Dict
 from pydantic import BaseModel
 
-from .controller import CustomProcess
+from .customProcess import CustomProcess
 
 class ProcessModel(BaseModel):
     process_id: int
