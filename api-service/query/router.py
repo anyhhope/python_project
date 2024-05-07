@@ -29,4 +29,4 @@ async def shutdown(query: schema.QueryShut,
         await controller.process_shutdown(db_conn, query)
         return {"id": query.id}
     except ValueError as e:
-        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        return {"detail": str(e)}, status.HTTP_404_NOT_FOUND #todo корректно вернуть код , сейчас пишет 200

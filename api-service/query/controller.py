@@ -35,7 +35,4 @@ async def process_shutdown(db_conn: PoolConnectionProxy, query: QueryShut):
         raise ValueError(f"Row with id {query.id} does not exist")
     
     await db.update_row(db_conn, int(query.id), StateEnum.SHUTDOWN_PROCESS.value)
-    producer: AIOProducer = get_state_producer()
-    message_to_produce: MessageState = {"id" : query.id, "state" : StateEnum.SHUTDOWN_PROCESS.value}
-    await produce(producer, message_to_produce)
     return 
