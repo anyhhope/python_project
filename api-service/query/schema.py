@@ -12,11 +12,18 @@ class StateEnum(str, Enum):
     INACTIVE_ERROR = "inactive_error"
 
 # модельки для апи
-class Query(BaseModel):
-    state: StateEnum = Field(examples=[StateEnum.STARTUP.value])
+class QueryInit(BaseModel):
+    # state: StateEnum = Field(examples=[StateEnum.STARTUP.value])
     rtsp_src: str = Field(examples=["rtsp://fake.kerberos.io/stream"])
+
+class QueryShut(BaseModel):
+    id: str
 
 # сообщение кафки
 class Message(BaseModel):
     id : str
     rtsp_src: str
+
+class MessageState(BaseModel):
+    id : str
+    state: StateEnum

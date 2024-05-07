@@ -35,3 +35,6 @@ class AIOProducer():
 
 def get_query_producer() -> AIOProducer:
     return AIOProducer(cfg, produce_topic=cfg.query_topic)
+
+def get_state_producer() -> AIOProducer:
+    return AIOProducer(cfg, produce_topic=cfg.state_topic)
