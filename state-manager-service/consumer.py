@@ -16,6 +16,8 @@ class AIOConsumer():
             value_deserializer=deserializer,
         )
 
+        self.consume_topic = consume_topic
+
     async def start(self) -> None:
         await self.__consumer.start()
 
@@ -24,10 +26,10 @@ class AIOConsumer():
 
     async def consume(self, event_handler: Callable[..., None]):
         await self.start()
-        print("Consumer started")
+        print(f"Consumer started, topic: {self.consume_topic}\n")
         try:
             async for msg in self.__consumer:
                 await event_handler(msg.value)
         finally:
             await self.stop()
-            print("Consumer stopped")
+            print(f"Consumer stopped,  topic: {self.consume_topic}\n")
