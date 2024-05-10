@@ -1,5 +1,5 @@
 from . import controller
-from consumer import AIOConsumer
+from .consumer import AIOConsumer
 from config import cfg
 
 def get_frame_consumer() -> AIOConsumer:
@@ -7,5 +7,5 @@ def get_frame_consumer() -> AIOConsumer:
 
 async def consume_frames_to_ml():
     consumer: AIOConsumer = get_frame_consumer()
-    await consumer.consume(controller.process)
+    await consumer.consume()
     return

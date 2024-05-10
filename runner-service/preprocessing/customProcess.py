@@ -5,6 +5,7 @@ from producer import AIOProducer
 from config import cfg
 from producer import get_frame_producer, produce
 import asyncio
+import base64
 
 
 class CustomProcess(Process):
@@ -52,7 +53,8 @@ class CustomProcess(Process):
             if ret and cnt % (fps // 2) == 0:
                 cnt += 1
                 img_bytes = cv2.imencode(".jpg", frame)[1].tobytes()
-                frame_message = {"id": self.id, "frame_id": str(cnt)}
+                img_base64 = base64.b64encode(img_bytes).decode('utf-8') 
+                frame_message = {"id": self.id, "frame_id": str(cnt), "frame": img_base64}
                 print(frame_message)
                 await produce(producerFrame, frame_message)
                 print(f"Frame msg produced")

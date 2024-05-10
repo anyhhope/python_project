@@ -1,11 +1,16 @@
 from ultralytics import YOLO
-
+from PIL import Image
+import base64
+from io import BytesIO
 
 
 async def process(msg):
     model = YOLO('./yolo_model/yolov9c.pt')
+    img_bytes = base64.b64decode(msg['frame'])
+    img = Image.open(BytesIO(img_bytes))
 
-    results = model(['im1.jpg'])  # return a list of Results objects
+
+    results = model([img]) 
 
     # Process results list
     for result in results:
