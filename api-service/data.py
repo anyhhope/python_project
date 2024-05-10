@@ -47,6 +47,12 @@ class Database:
                     created_at TIMESTAMP not null
                 );
             ''')  
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS outbox (
+                                id SERIAL PRIMARY KEY,
+                                rtsp_src: text not null,
+                            );
+            ''')  
 
 
 db_instance = Database(cfg)

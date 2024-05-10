@@ -9,6 +9,30 @@ async def insert_new_row(db: PoolConnectionProxy, new_row: models.QueryDto ):
     result = await db.fetchval(query, new_row.rtsp_src, new_row.state, datetime.datetime.now())
     return result
 
+async def insert_rows_transaction(db: PoolConnectionProxy, new_row: models.QueryDto):
+    try:
+        async with db.transaction():
+            # Insert rows into the first table
+            query = 'INSERT INTO stream_status(rtsp_src, state, created_at) VALUES($1, $2, $3) RETURNING id'
+            result_id = await db.fetchval(query, new_row.rtsp_src, new_row.state, datetime.datetime.now())
+            # Insert rows into the second table
+            query = 'INSERT INTO outbox(rtsp_src) VALUES($1)'
+            await db.execute(query, new_row.rtsp_src)
+
+    except Exception as e:
+        # Rollback the transaction in case of any exception
+        await db.rollback()
+        raise e
+    
+async def get_row_from_outbox(db: PoolConnectionProxy):
+    query = 'SELECT id, rtsp_src FROM outbox ORDER BY id LIMIT 1'
+    row = await db.fetchval(query)
+    return row
+
+async def delete_row_from_outbox(db: PoolConnectionProxy, id):
+    query = 'DELETE FROM outbox WHERE id = $1'
+    row = await db.fetchval(query, id)
+    return row
 
 async def update_row(db: PoolConnectionProxy, row_id: int, new_state: str):
     """Обновление состояния текущей строки по идентификатору"""

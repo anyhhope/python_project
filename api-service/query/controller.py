@@ -16,6 +16,13 @@ async def produce(producer: AIOProducer, message_to_produce: Message):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+async def produce_from_outbox(db_conn, query_id):
+    row = db.get_row_from_outbox(db_conn)
+    producer: AIOProducer = get_query_producer()
+    message_to_produce: Message = {"id" : query_id, "rtsp_src" : row["rtsp_src"]}
+    await produce(producer, message_to_produce)
+    db.delete_row_from_outbox(db_conn, row["id"])
+
 
 async def process(db_conn: PoolConnectionProxy, query: QueryInit):
     query_row = QueryDto(

@@ -14,6 +14,7 @@ import numpy as np
 from data import get_connection, PoolConnectionProxy, Database
 from . import db
 from .models import DetectionDto
+from . import controller
 
 
 class CustomProcess(Process):
@@ -49,28 +50,30 @@ class CustomProcess(Process):
             for result in results:  
                 img = result.plot()
 
-                image = Image.fromarray(np.uint8(img))
-                image_bytes = BytesIO()
-                image.save(image_bytes, format='JPEG')
-                image_bytes.seek(0)
+                # image = Image.fromarray(np.uint8(img))
+                # image_bytes = BytesIO()
+                # image.save(image_bytes, format='JPEG')
+                # image_bytes.seek(0)
                 
                 filename = f"frame_{msg.id}_{msg.frame_id}.jpg"
-                s3.put_object(
-                    cfg.minio_bucket,
-                    filename,
-                    image_bytes,
-                    length=len(image_bytes.getvalue()),
-                    content_type='image/jpeg'
-                )
+                s3_url = await controller.upload_img_to_s3(img, filename)
+                await controller.save_detection_to_db(s3_url, msg, result)
+                # s3.put_object(
+                #     cfg.minio_bucket,
+                #     filename,
+                #     image_bytes,
+                #     length=len(image_bytes.getvalue()),
+                #     content_type='image/jpeg'
+                # )
 
-                s3_url = s3.presigned_get_object(bucket_name=cfg.minio_bucket, object_name=filename)
+                # s3_url = s3.presigned_get_object(bucket_name=cfg.minio_bucket, object_name=filename)
 
-                db_instance = Database(cfg)
-                await db_instance.connect()
-                new_row = DetectionDto(s3_url = s3_url, query_id = msg.id, 
-                                        detection_result = result.verbose()[:-2])
-                db_conn: PoolConnectionProxy = await get_connection(db_instance)
-                await db.insert_new_row(db_conn, new_row)
+                # db_instance = Database(cfg)
+                # await db_instance.connect()
+                # new_row = DetectionDto(s3_url = s3_url, query_id = msg.id, 
+                #                         detection_result = result.verbose()[:-2])
+                # db_conn: PoolConnectionProxy = await get_connection(db_instance)
+                # await db.insert_new_row(db_conn, new_row)
 
                 # result.save(filename=f'tmp/result{msg.id}_{msg.frame_id}.jpg')  
                 
