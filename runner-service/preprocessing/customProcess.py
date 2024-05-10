@@ -32,21 +32,12 @@ class CustomProcess(Process):
         cnt = 0
 
         producerFrame: AIOProducer = get_frame_producer()
-        # producer: AIOProducer = get_state_producer()
-        # state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value}
-        # await produce(producer, state_message) 
-        # producer.stop()
-        
-        # window_name = f"RTSP Stream {self.msg.id}"  
-        # cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
         while True:
             ret, frame = cap.read()
             if not ret:
                 print('Error: No frame received from stream.')
                 break
-
-            # cv2.imshow(window_name, frame)
 
             if self.event.is_set():
                 break
@@ -57,12 +48,14 @@ class CustomProcess(Process):
                 img_bytes = cv2.imencode(".jpg", frame)[1].tobytes()
                 img_base64 = base64.b64encode(img_bytes).decode('utf-8') 
                 frame_message = {"id": self.id, "frame_id": str(cnt), "frame": img_base64}
-                # print(frame_message)
                 await produce(producerFrame, frame_message)
                 print(f"Frame msg produced")
+
+            if ret and cnt == 1:
+                state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value}
+                await produce(producerFrame, state_message, topic=cfg.state_topic)
                 
         producerFrame.stop()
         cap.release()
-        # cv2.destroyWindow(window_name)
 
 #  process.event.set() - to stop loop -> stop process

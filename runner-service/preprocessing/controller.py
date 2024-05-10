@@ -11,15 +11,16 @@ from .consumer import deserializer
 from .processes_store import processes_store
 
 
-async def process_shut_state(msg: MessageState):
+async def process_shut_state(msg: MessageState, producer_state: AIOProducer):
     msg_obg: MessageState = SimpleNamespace(**msg)
-    process_model = processes_store.get(msg_obg.id)
+    process_model = processes_store.get(str(msg_obg.id))
+
     if process_model and msg_obg.state == StateEnum.SHUTDOWN_PROCESS.value:
         custom_process = process_model.process
         custom_process.event.set()
-        producer_state : AIOProducer = get_state_producer() #todo create one producer outside
         print(f"Process {msg_obg.id} stopped")
         await produce(producer_state, {"id" : msg_obg.id, "state" : StateEnum.INACTIVE_OK}) #state_manager должен собрать со всех shutdown поэтому поле отправителья добавить
+    
     elif not process_model:
         raise ValueError(f"Process not found for id {msg_obg.id}")
     return
@@ -30,16 +31,19 @@ async def consume_shutdown():
         bootstrap_servers=f'{cfg.kafka_host}:{cfg.kafka_port}',
         value_deserializer=deserializer,
     )
+    producer_state : AIOProducer = get_state_producer() 
 
     await state_consumer.start()
     print(f"Consumer state started\n")
 
     try:
         async for msg in state_consumer:
-            await process_shut_state(msg.value)
+            await process_shut_state(msg.value, producer_state)
     finally:
         await state_consumer.stop()
         print(f"Consumer state stopped\n")
+        await producer_state.stop()
+        print(f"Producer state stopped\n")
 
     return
 

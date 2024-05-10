@@ -25,15 +25,22 @@ class AIOProducer():
         await self.__producer.stop()
         print("Producer stopped")
 
-    async def send(self, value) -> None:
+    async def send(self, value, topic=None) -> None:
         if not self.is_started:
             await self.start()
             self.is_started = True
 
-        await self.__producer.send(
-            topic=self.__produce_topic,
-            value=value,
-        )
+        if topic:
+            await self.__producer.send(
+                topic=topic,
+                value=value,
+            )
+        else:
+            await self.__producer.send(
+                topic=self.__produce_topic,
+                value=value,
+            )
+
 
 
 def get_frame_producer() -> AIOProducer:
@@ -45,9 +52,12 @@ def get_state_producer() -> AIOProducer:
     return AIOProducer(cfg, produce_topic=cfg.state_topic)
 
 
-async def produce(producer: AIOProducer, message_to_produce):
+async def produce(producer: AIOProducer, message_to_produce, topic=None):
     try:
-        await producer.send(value=message_to_produce)
+        if topic:
+            await producer.send(value=message_to_produce, topic=topic)
+        else:
+            await producer.send(value=message_to_produce)
         print(f"Produced")
     except Exception as e:
         print(f"An error occurred: {e}")
