@@ -1,4 +1,4 @@
-from .schema import MessageConsume, MessageState, StateEnum
+from .schema import MessageConsume, MessageState, StateEnum, ServiceSenderEnum
 from producer import AIOProducer, get_state_producer, produce
 from config import cfg
 import cv2
@@ -15,11 +15,11 @@ async def process_shut_state(msg: MessageState, producer_state: AIOProducer):
     msg_obg: MessageState = SimpleNamespace(**msg)
     process_model = processes_store.get(str(msg_obg.id))
 
-    if process_model and msg_obg.state == StateEnum.SHUTDOWN_PROCESS.value:
+    if process_model and msg_obg.state == StateEnum.SHUTDOWN.value:
         custom_process = process_model.process
         custom_process.event.set()
         print(f"Process {msg_obg.id} stopped")
-        await produce(producer_state, {"id" : msg_obg.id, "state" : StateEnum.INACTIVE_OK}) #state_manager должен собрать со всех shutdown поэтому поле отправителья добавить
+        await produce(producer_state, {"id" : msg_obg.id, "state" : StateEnum.INACTIVE_OK, "error": msg_obg.error, "sender": ServiceSenderEnum.RUNNER.value}) 
     
     elif not process_model:
         raise ValueError(f"Process not found for id {msg_obg.id}")
