@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EncodedBytes
 from enum import Enum
 
 # сообщение кафки
@@ -20,3 +20,8 @@ class StateEnum(str, Enum):
 class MessageState(BaseModel):
     id : str
     state: StateEnum
+
+class MessageFrame(BaseModel):
+    id : str
+    frame_id: str
+    # frame: EncodedBytes

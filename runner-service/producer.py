@@ -33,3 +33,31 @@ class AIOProducer():
             )
         finally:
             await self.stop()
+
+
+def get_frame_producer() -> AIOProducer:
+    producer = AIOProducer(cfg, produce_topic=cfg.frames_topic)
+    producer.start()
+    return producer
+
+
+
+def get_state_producer() -> AIOProducer:
+    return AIOProducer(cfg, produce_topic=cfg.state_topic)
+
+
+async def produce(producer: AIOProducer, message_to_produce):
+    try:
+        await producer.send(value=message_to_produce)
+        print(f"Message {message_to_produce} produced")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+
+def produceSync(producer: AIOProducer, message_to_produce):
+    try:
+        producer.send(value=message_to_produce)
+        print(f"Message {message_to_produce} produced")
+    except Exception as e:
+        print(f"An error occurred: {e}")

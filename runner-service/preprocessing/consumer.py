@@ -35,7 +35,7 @@ class AIOConsumer():
         try:
             async for msg in self.__consumer:
                 msg_object: MessageConsume = SimpleNamespace(**msg.value)
-                process = CustomProcess(msg=msg_object)
+                process = CustomProcess(msg=msg_object, id=msg_object.id)
                 processes_store[str(msg_object.id)] = ProcessModel(process_id=msg_object.id, process=process)
                 process.start()
         finally:

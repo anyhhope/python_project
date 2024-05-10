@@ -1,5 +1,5 @@
 from .schema import MessageConsume, MessageState, StateEnum
-from producer import AIOProducer
+from producer import AIOProducer, get_state_producer, produce
 from config import cfg
 import cv2
 from types import SimpleNamespace
@@ -9,17 +9,6 @@ from multiprocessing import Event
 from aiokafka import AIOKafkaConsumer
 from .consumer import deserializer
 from .processes_store import processes_store
-
-def get_state_producer() -> AIOProducer:
-    return AIOProducer(cfg, produce_topic=cfg.state_topic)
-
-
-async def produce(producer: AIOProducer, message_to_produce: MessageState):
-    try:
-        await producer.send(value=message_to_produce)
-        print(f"Message {message_to_produce} produced")
-    except Exception as e:
-        print(f"An error occurred: {e}")
 
 
 async def process_shut_state(msg: MessageState):

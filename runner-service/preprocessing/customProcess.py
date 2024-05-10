@@ -1,30 +1,42 @@
 import cv2
 from multiprocessing import Process, Event
-from .schema import MessageConsume, MessageState, StateEnum
+from .schema import MessageConsume, MessageState, StateEnum, MessageFrame
 from producer import AIOProducer
 from config import cfg
+from producer import get_frame_producer, produce
+import asyncio
 
 
 class CustomProcess(Process):
 
-    def __init__(self, msg : MessageConsume):
+    def __init__(self, msg : MessageConsume, id: str):
         Process.__init__(self)
         self.event = Event()
         self.msg = msg
- 
+        self.id = id
+
     def run(self):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.async_run())
+ 
+    async def async_run(self):
         cap = cv2.VideoCapture(self.msg.rtsp_src)
         if not cap.isOpened():
             print("Error: Could not open RTSP stream.")
             return
 
+        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        cnt = 0
+
+        producerFrame: AIOProducer = get_frame_producer()
         # producer: AIOProducer = get_state_producer()
         # state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value}
         # await produce(producer, state_message) 
         # producer.stop()
         
-        window_name = f"RTSP Stream {self.msg.id}"  
-        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
+        # window_name = f"RTSP Stream {self.msg.id}"  
+        # cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
 
         while True:
             ret, frame = cap.read()
@@ -32,15 +44,21 @@ class CustomProcess(Process):
                 print('Error: No frame received from stream.')
                 break
 
-            cv2.imshow(window_name, frame)
+            # cv2.imshow(window_name, frame)
 
             if self.event.is_set():
                 break
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if ret and cnt % (fps // 2) == 0:
+                cnt += 1
+                img_bytes = cv2.imencode(".jpg", frame)[1].tobytes()
+                frame_message = {"id": self.id, "frame_id": str(cnt)}
+                print(frame_message)
+                await produce(producerFrame, frame_message)
+                print(f"Frame msg produced")
                 break
             
         cap.release()
-        cv2.destroyWindow(window_name)
+        # cv2.destroyWindow(window_name)
 
 #  process.event.set() - to stop loop -> stop process
