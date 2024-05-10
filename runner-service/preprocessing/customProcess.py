@@ -55,7 +55,7 @@ class CustomProcess(Process):
                 state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value, "error": False, "sender": ServiceSenderEnum.RUNNER.value}
                 await produce(producerFrame, state_message, topic=cfg.state_topic)
                 
-        producerFrame.stop()
+        await producerFrame.stop()
         cap.release()
 
 #  process.event.set() - to stop loop -> stop process

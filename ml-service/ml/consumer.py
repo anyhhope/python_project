@@ -33,6 +33,7 @@ class AIOConsumer():
         await self.start()
         print(f"Consumer started, topic: {self.consume_topic}\n")
         try:
+            print('here')
             async for msg in self.__consumer:
                 msg_object: MessageConsume = SimpleNamespace(**msg.value)
                 process_model = processes_store.get(str(msg_object.id))

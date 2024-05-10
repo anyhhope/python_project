@@ -51,8 +51,8 @@ class Database:
 
 db_instance = Database(cfg)
 
-async def get_connection() -> AsyncGenerator[PoolConnectionProxy, None]:
+async def get_connection(db_instance) -> PoolConnectionProxy:
     print("Getting connection")
-    async with db_instance.pool.acquire() as connection:
-        yield connection
-    print("Releasing connection")
+    connection = await db_instance.pool.acquire()
+    print("Connection acquired")
+    return connection

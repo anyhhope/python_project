@@ -21,6 +21,12 @@ class Config(BaseSettings):
 
     ml_model_path: str
 
+    minio_host: str
+    minio_port: int
+    minio_access_key: str
+    minio_secret_key: str
+    minio_bucket: str
+
     @property
     def build_postgres_dsn(self) -> str:
         res = (

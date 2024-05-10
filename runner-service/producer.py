@@ -36,6 +36,7 @@ class AIOProducer():
                 value=value,
             )
         else:
+            print('here')
             await self.__producer.send(
                 topic=self.__produce_topic,
                 value=value,
@@ -56,8 +57,9 @@ async def produce(producer: AIOProducer, message_to_produce, topic=None):
     try:
         if topic:
             await producer.send(value=message_to_produce, topic=topic)
+            print(f"Produced {topic}")
         else:
+            print(f"Produced")
             await producer.send(value=message_to_produce)
-        print(f"Produced")
     except Exception as e:
         print(f"An error occurred: {e}")

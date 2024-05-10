@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Base64Bytes, Enum
+from pydantic import BaseModel, Base64Bytes
+from enum import Enum
 
 class MessageConsume(BaseModel):
     id : str
