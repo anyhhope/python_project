@@ -44,7 +44,7 @@ class CustomProcess(Process):
                 probs = result.probs  # Probs object for classification outputs
                 obb = result.obb  # Oriented boxes object for OBB outputs
                 result.show()  # display to screen
-                result.save(filename=f'tmp/result{msg.frame_id}.jpg')  # save to disk
+                result.save(filename=f'tmp/result{msg.id}_{msg.frame_id}.jpg')  # save to disk
 
     def send_message(self, msg: MessageConsume):
         # Помещение сообщения в очередь

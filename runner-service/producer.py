@@ -15,6 +15,7 @@ class AIOProducer():
             compression_type="gzip"
         )
         self.__produce_topic = produce_topic
+        self.is_started = False
 
     async def start(self) -> None:
         await self.__producer.start()
@@ -25,19 +26,17 @@ class AIOProducer():
         print("Producer stopped")
 
     async def send(self, value) -> None:
-        await self.start()
-        # try:
+        if not self.is_started:
+            await self.start()
+            self.is_started = True
+
         await self.__producer.send(
             topic=self.__produce_topic,
             value=value,
         )
-        # finally:
-        #     await self.stop()
 
 
 def get_frame_producer() -> AIOProducer:
-    # producer = AIOProducer(cfg, produce_topic=cfg.frames_topic)
-    # await producer.start()
     return AIOProducer(cfg, produce_topic=cfg.frames_topic)
 
 
@@ -49,15 +48,6 @@ def get_state_producer() -> AIOProducer:
 async def produce(producer: AIOProducer, message_to_produce):
     try:
         await producer.send(value=message_to_produce)
-        # print(f"Message {message_to_produce} produced")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-
-
-def produceSync(producer: AIOProducer, message_to_produce):
-    try:
-        producer.send(value=message_to_produce)
-        print(f"Message {message_to_produce} produced")
+        print(f"Produced")
     except Exception as e:
         print(f"An error occurred: {e}")

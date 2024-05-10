@@ -28,6 +28,7 @@ class CustomProcess(Process):
             return
 
         fps = int(cap.get(cv2.CAP_PROP_FPS))
+        print(f"fps {fps}")
         cnt = 0
 
         producerFrame: AIOProducer = get_frame_producer()
@@ -49,8 +50,9 @@ class CustomProcess(Process):
 
             if self.event.is_set():
                 break
-
-            if ret:
+            
+            cnt += 1
+            if ret and cnt % (fps * 4) == 0:
                 cnt += 1
                 img_bytes = cv2.imencode(".jpg", frame)[1].tobytes()
                 img_base64 = base64.b64encode(img_bytes).decode('utf-8') 
@@ -58,7 +60,8 @@ class CustomProcess(Process):
                 # print(frame_message)
                 await produce(producerFrame, frame_message)
                 print(f"Frame msg produced")
-            
+                
+        producerFrame.stop()
         cap.release()
         # cv2.destroyWindow(window_name)
 
