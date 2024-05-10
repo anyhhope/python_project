@@ -1,9 +1,9 @@
 import cv2
 from multiprocessing import Process, Event, Queue
-from .schema import MessageConsume
+from .schema import MessageConsume, StateEnum, ServiceSenderEnum, MessageState
 from producer import AIOProducer
 from config import cfg
-from producer import get_frame_producer, produce
+from producer import get_state_producer, produce
 import asyncio
 import base64
 from ultralytics import YOLO
@@ -16,7 +16,6 @@ class CustomProcess(Process):
     def __init__(self, id: str):
         Process.__init__(self)
         self.event = Event()
-        # self.msg = msg
         self.id = id
         self.msg_queue = Queue()
 
@@ -26,7 +25,11 @@ class CustomProcess(Process):
         loop.run_until_complete(self.async_run())
  
     async def async_run(self):
-        model = YOLO('./yolo_model/yolov9c.pt')
+        model = YOLO(cfg.ml_model_path)
+        producerState: AIOProducer = get_state_producer()
+        state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value, "error": False, "sender": ServiceSenderEnum.ML.value}
+        await produce(producerState, state_message)
+
         while not self.event.is_set(): 
 
             msg: MessageConsume = self.msg_queue.get()

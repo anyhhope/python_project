@@ -36,13 +36,12 @@ class AIOConsumer():
             async for msg in self.__consumer:
                 msg_object: MessageConsume = SimpleNamespace(**msg.value)
                 process_model = processes_store.get(str(msg_object.id))
-                print("GGGGGGGG", processes_store)
-                print("ID", msg_object.id)
+                
                 if process_model:
                     print(f"Sending message to existing process for id {msg_object.id}")
                     process_model.process.send_message(msg_object)
                 elif not process_model:
-                    print("new process")
+                    print(f"New process {msg_object.id}")
                     process = CustomProcess(id=msg_object.id)
                     processes_store[str(msg_object.id)] = ProcessModel(process_id=msg_object.id, process=process)
                     process.start()

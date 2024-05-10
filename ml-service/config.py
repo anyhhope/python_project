@@ -19,6 +19,8 @@ class Config(BaseSettings):
     frames_topic: str
     state_topic: str
 
+    ml_model_path: str
+
     @property
     def build_postgres_dsn(self) -> str:
         res = (

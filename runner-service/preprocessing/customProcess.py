@@ -1,6 +1,6 @@
 import cv2
 from multiprocessing import Process, Event
-from .schema import MessageConsume, MessageState, StateEnum, MessageFrame
+from .schema import MessageConsume, MessageState, StateEnum, ServiceSenderEnum
 from producer import AIOProducer
 from config import cfg
 from producer import get_frame_producer, produce
@@ -52,7 +52,7 @@ class CustomProcess(Process):
                 print(f"Frame msg produced")
 
             if ret and cnt == 1:
-                state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value}
+                state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value, "error": False, "sender": ServiceSenderEnum.RUNNER.value}
                 await produce(producerFrame, state_message, topic=cfg.state_topic)
                 
         producerFrame.stop()
