@@ -1,5 +1,5 @@
 import cv2
-from multiprocessing import Process, Event
+from multiprocessing import Process, Event, Queue
 from .schema import MessageConsume
 from producer import AIOProducer
 from config import cfg
@@ -13,11 +13,12 @@ from io import BytesIO
 
 class CustomProcess(Process):
 
-    def __init__(self, msg : MessageConsume, id: str):
+    def __init__(self, id: str):
         Process.__init__(self)
         self.event = Event()
-        self.msg = msg
+        # self.msg = msg
         self.id = id
+        self.msg_queue = Queue()
 
     def run(self):
         loop = asyncio.new_event_loop()
@@ -26,20 +27,33 @@ class CustomProcess(Process):
  
     async def async_run(self):
         model = YOLO('./yolo_model/yolov9c.pt')
-        img_bytes = base64.b64decode(self.msg.frame)
-        img = Image.open(BytesIO(img_bytes))
+        while not self.event.is_set(): 
+
+            msg: MessageConsume = self.msg_queue.get()
+            img_bytes = base64.b64decode(msg.frame)
+            img = Image.open(BytesIO(img_bytes))
 
 
-        results = model([img]) 
+            results = model([img]) 
 
-        # Process results list
-        for result in results:
-            boxes = result.boxes  # Boxes object for bounding box outputs
-            masks = result.masks  # Masks object for segmentation masks outputs
-            keypoints = result.keypoints  # Keypoints object for pose outputs
-            probs = result.probs  # Probs object for classification outputs
-            obb = result.obb  # Oriented boxes object for OBB outputs
-            result.show()  # display to screen
-            result.save(filename='result.jpg')  # save to disk
+            # Process results list
+            for result in results:
+                boxes = result.boxes  # Boxes object for bounding box outputs
+                masks = result.masks  # Masks object for segmentation masks outputs
+                keypoints = result.keypoints  # Keypoints object for pose outputs
+                probs = result.probs  # Probs object for classification outputs
+                obb = result.obb  # Oriented boxes object for OBB outputs
+                result.show()  # display to screen
+                result.save(filename=f'tmp/result{msg.frame_id}.jpg')  # save to disk
+
+    def send_message(self, msg: MessageConsume):
+        # Помещение сообщения в очередь
+        self.msg_queue.put(msg)
+
+    def stop(self):
+        # Установка флага остановки
+        self.event.set()
+
+    
 
 #  process.event.set() - to stop loop -> stop process
