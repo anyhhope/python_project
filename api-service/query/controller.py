@@ -1,5 +1,5 @@
 from asyncpg.pool import PoolConnectionProxy
-from .schema import  Message, QueryShut, QueryInit, StateEnum, MessageState, ServiceSenderEnum
+from .schema import  Message, QueryOnlyId, QueryInit, StateEnum, MessageState, ServiceSenderEnum
 from .models import QueryDto
 from . import db
 import asyncio
@@ -29,7 +29,7 @@ async def process(db_conn: PoolConnectionProxy, query: QueryInit):
     await produce(producer, message_to_produce)
     return new_id
 
-async def process_shutdown(db_conn: PoolConnectionProxy, query: QueryShut):
+async def process_shutdown(db_conn: PoolConnectionProxy, query: QueryOnlyId):
     row_exists = await db.check_row_exists(db_conn, int(query.id))
     if not row_exists:
         raise ValueError(f"Row with id {query.id} does not exist")
@@ -39,3 +39,8 @@ async def process_shutdown(db_conn: PoolConnectionProxy, query: QueryShut):
     message_to_produce: MessageState = {"id" : query.id, "state" : StateEnum.SHUTDOWN.value, "error": False, "sender": ServiceSenderEnum.API.value}
     await produce(producer, message_to_produce)
     return 
+
+
+async def get_detection_result(db_conn: PoolConnectionProxy, query_id):
+    result = await db.get_detection_results_by_query_id(db_conn, int(query_id))
+    return result

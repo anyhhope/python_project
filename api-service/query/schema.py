@@ -29,7 +29,7 @@ class QueryInit(BaseModel):
     # state: StateEnum = Field(examples=[StateEnum.STARTUP.value])
     rtsp_src: str = Field(examples=["rtsp://fake.kerberos.io/stream"])
 
-class QueryShut(BaseModel):
+class QueryOnlyId(BaseModel):
     id: str
 
 # сообщение кафки

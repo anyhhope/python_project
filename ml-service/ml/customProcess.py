@@ -46,9 +46,7 @@ class CustomProcess(Process):
             results = model([img]) 
 
             # Process results list
-            for result in results:
-                print("VERBOSE\n", result.verbose())
-  
+            for result in results:  
                 img = result.plot()
 
                 image = Image.fromarray(np.uint8(img))
@@ -66,16 +64,15 @@ class CustomProcess(Process):
                 )
 
                 s3_url = s3.presigned_get_object(bucket_name=cfg.minio_bucket, object_name=filename)
-                print(s3_url)
-                
+
                 db_instance = Database(cfg)
                 await db_instance.connect()
                 new_row = DetectionDto(s3_url = s3_url, query_id = msg.id, 
-                                        detection_result = result.verbose())
+                                        detection_result = result.verbose()[:-2])
                 db_conn: PoolConnectionProxy = await get_connection(db_instance)
                 await db.insert_new_row(db_conn, new_row)
 
-                result.save(filename=f'tmp/result{msg.id}_{msg.frame_id}.jpg')  
+                # result.save(filename=f'tmp/result{msg.id}_{msg.frame_id}.jpg')  
                 
 
     def send_message(self, msg: MessageConsume):
@@ -85,7 +82,6 @@ class CustomProcess(Process):
     def stop(self):
         # Установка флага остановки
         self.event.set()
-
-    
+   
 
 #  process.event.set() - to stop loop -> stop process
