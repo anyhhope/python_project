@@ -24,6 +24,7 @@ class CustomProcess(Process):
         self.event = Event()
         self.id = id
         self.msg_queue = Queue()
+        self.db_instance = Database(cfg)
 
     def run(self):
         loop = asyncio.new_event_loop()
@@ -31,52 +32,51 @@ class CustomProcess(Process):
         loop.run_until_complete(self.async_run())
  
     async def async_run(self):
-        model = YOLO(cfg.ml_model_path)
-        print(cfg.ml_model_path)
-        producerState: AIOProducer = get_state_producer()
-        state_message: MessageState = {"id": self.id, "state": StateEnum.RUNNER_PROCESS.value, "error": False, "sender": ServiceSenderEnum.ML.value}
-        await produce(producerState, state_message)
-        await producerState.stop()
+        try:
+            model = YOLO(cfg.ml_model_path)
+            print(cfg.ml_model_path)
 
-        while not self.event.is_set(): 
+            producerState: AIOProducer = get_state_producer()
+            state_message: MessageState = {"id": self.id, "state": StateEnum.ML_PROCESS.value, "error": False, "sender": ServiceSenderEnum.ML.value}
+            await produce(producerState, state_message)
+            await producerState.stop()
 
-            msg: MessageConsume = self.msg_queue.get()
-            img_bytes = base64.b64decode(msg.frame)
-            img = Image.open(BytesIO(img_bytes))
+            await self.db_instance.connect()
+            db_conn: PoolConnectionProxy = await get_connection(self.db_instance)
 
-            results = model([img]) 
+            while not self.event.is_set(): 
+                if self.event.is_set():
+                    break
 
-            # Process results list
-            for result in results:  
-                img = result.plot()
+                msg: MessageConsume = self.msg_queue.get()
+                img_bytes = base64.b64decode(msg.frame)
+                img = Image.open(BytesIO(img_bytes))
 
-                # image = Image.fromarray(np.uint8(img))
-                # image_bytes = BytesIO()
-                # image.save(image_bytes, format='JPEG')
-                # image_bytes.seek(0)
-                
-                filename = f"frame_{msg.id}_{msg.frame_id}.jpg"
-                s3_url = await controller.upload_img_to_s3(img, filename)
-                await controller.save_detection_to_db(s3_url, msg, result)
-                # s3.put_object(
-                #     cfg.minio_bucket,
-                #     filename,
-                #     image_bytes,
-                #     length=len(image_bytes.getvalue()),
-                #     content_type='image/jpeg'
-                # )
+                results = model([img]) 
 
-                # s3_url = s3.presigned_get_object(bucket_name=cfg.minio_bucket, object_name=filename)
+                for result in results:  
+                    img = result.plot()
 
-                # db_instance = Database(cfg)
-                # await db_instance.connect()
-                # new_row = DetectionDto(s3_url = s3_url, query_id = msg.id, 
-                #                         detection_result = result.verbose()[:-2])
-                # db_conn: PoolConnectionProxy = await get_connection(db_instance)
-                # await db.insert_new_row(db_conn, new_row)
+                    try:
+                        async with db_conn.transaction():
+                            filename = f"frame_{msg.id}_{msg.frame_id}.jpg"
+                            s3_url = await controller.upload_img_to_s3(img, filename)
+                            await controller.save_detection_to_db(db_conn, s3_url, msg, result)
+                    except Exception as e:
+                        print(f"Error s3 and pg transaction: {e}")
+                        raise e
+                    
+            print("HERE")
+            await self.db_instance.disconnect()
 
-                # result.save(filename=f'tmp/result{msg.id}_{msg.frame_id}.jpg')  
-                
+        except Exception as e:
+            producerState: AIOProducer = get_state_producer()
+            state_message: MessageState = {"id": self.id, "state": StateEnum.SHUTDOWN.value, "error": True, "sender": ServiceSenderEnum.ML.value}
+            await produce(producerState, state_message)
+            await producerState.stop()
+            await self.db_instance.disconnect()
+            print(f"ML process {self.id} error : {e}")
+               
 
     def send_message(self, msg: MessageConsume):
         # Помещение сообщения в очередь

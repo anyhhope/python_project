@@ -22,40 +22,48 @@ class CustomProcess(Process):
         loop.run_until_complete(self.async_run())
  
     async def async_run(self):
-        cap = cv2.VideoCapture(self.msg.rtsp_src)
-        if not cap.isOpened():
-            print("Error: Could not open RTSP stream.")
-            return
+        try:
+            cap = cv2.VideoCapture(self.msg.rtsp_src)
+            if not cap.isOpened():
+                print("Error: Could not open RTSP stream.")
+                return
 
-        fps = int(cap.get(cv2.CAP_PROP_FPS))
-        print(f"fps {fps}")
-        cnt = 0
+            fps = int(cap.get(cv2.CAP_PROP_FPS))
+            cnt = 0
 
-        producerFrame: AIOProducer = get_frame_producer()
+            producerFrame: AIOProducer = get_frame_producer()
 
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                print('Error: No frame received from stream.')
-                break
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    print('Error: No frame received from stream.')
+                    raise Exception
 
-            if self.event.is_set():
-                break
-            
-            cnt += 1
-            if ret and cnt % (fps * 4) == 0:
-                cnt += 1
-                img_bytes = cv2.imencode(".jpg", frame)[1].tobytes()
-                img_base64 = base64.b64encode(img_bytes).decode('utf-8') 
-                frame_message = {"id": self.id, "frame_id": str(cnt), "frame": img_base64}
-                await produce(producerFrame, frame_message)
-                print(f"Frame msg produced")
-
-            if ret and cnt == 1:
-                state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value, "error": False, "sender": ServiceSenderEnum.RUNNER.value}
-                await produce(producerFrame, state_message, topic=cfg.state_topic)
+                if self.event.is_set():
+                    break
                 
-        await producerFrame.stop()
-        cap.release()
+                cnt += 1
+                if ret and cnt % (fps * 4) == 0:
+                    cnt += 1
+                    img_bytes = cv2.imencode(".jpg", frame)[1].tobytes()
+                    img_base64 = base64.b64encode(img_bytes).decode('utf-8') 
+                    frame_message = {"id": self.id, "frame_id": str(cnt), "frame": img_base64}
+                    await produce(producerFrame, frame_message)
+                    print(f"Frame msg produced")
+
+                if ret and cnt == 1:
+                    state_message: MessageState = {"id": self.msg.id, "state": StateEnum.RUNNER_PROCESS.value, "error": False, "sender": ServiceSenderEnum.RUNNER.value}
+                    await produce(producerFrame, state_message, topic=cfg.state_topic)
+                    
+            await producerFrame.stop()
+            cap.release()
+        
+        except Exception as e:
+            producerFrame: AIOProducer = get_frame_producer()
+            state_message: MessageState = {"id": self.msg.id, "state": StateEnum.SHUTDOWN.value, "error": True, "sender": ServiceSenderEnum.RUNNER.value}
+            await produce(producerFrame, state_message, topic=cfg.state_topic)
+            await producerFrame.stop()
+            print(f"Process {self.id} ERROR: {e}")
+
 
 #  process.event.set() - to stop loop -> stop process

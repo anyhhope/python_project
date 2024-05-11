@@ -33,12 +33,12 @@ class AIOConsumer():
         await self.start()
         print(f"Consumer started, topic: {self.consume_topic}\n")
         try:
-            print('here')
             async for msg in self.__consumer:
                 msg_object: MessageConsume = SimpleNamespace(**msg.value)
                 process_model = processes_store.get(str(msg_object.id))
+                print(msg_object.id)
                 
-                if process_model:
+                if process_model and process_model.process.is_alive():
                     print(f"Sending message to existing process for id {msg_object.id}")
                     process_model.process.send_message(msg_object)
                 elif not process_model:

@@ -36,7 +36,6 @@ class AIOProducer():
                 value=value,
             )
         else:
-            print('here')
             await self.__producer.send(
                 topic=self.__produce_topic,
                 value=value,

@@ -21,7 +21,6 @@ async def upload_img_to_s3(img, filename):
     image.save(image_bytes, format='JPEG')
     image_bytes.seek(0)
     
-    # filename = f"frame_{msg.id}_{msg.frame_id}.jpg"
     s3.put_object(
         cfg.minio_bucket,
         filename,
@@ -33,12 +32,9 @@ async def upload_img_to_s3(img, filename):
     s3_url = s3.presigned_get_object(bucket_name=cfg.minio_bucket, object_name=filename)
     return s3_url
 
-async def save_detection_to_db(s3_url, msg, result):
-    db_instance = Database(cfg)
-    await db_instance.connect()
+async def save_detection_to_db(db_conn, s3_url, msg, result):
     new_row = DetectionDto(s3_url = s3_url, query_id = msg.id, 
                             detection_result = result.verbose()[:-2])
-    db_conn: PoolConnectionProxy = await get_connection(db_instance)
     await db.insert_new_row(db_conn, new_row)
 
 async def process_shut_state(msg: MessageState, producer_state: AIOProducer):
@@ -50,9 +46,9 @@ async def process_shut_state(msg: MessageState, producer_state: AIOProducer):
         custom_process.event.set()
         print(f"Process {msg_obg.id} stopped")
         await produce(producer_state, {"id" : msg_obg.id, "state" : StateEnum.INACTIVE_OK, "error": msg_obg.error, "sender": ServiceSenderEnum.ML.value}) 
-    
-    elif not process_model:
-        raise ValueError(f"Process not found for id {msg_obg.id}")
+        process_model.process.kill()
+        # processes_store.pop(str(msg_obg.id))
+        
     return
 
 async def consume_shutdown():
@@ -69,7 +65,7 @@ async def consume_shutdown():
     try:
         async for msg in state_consumer:
             msg_obg: MessageState = SimpleNamespace(**msg.value)
-            if msg_obg.state == StateEnum.SHUTDOWN.value:
+            if msg_obg.state == StateEnum.SHUTDOWN.value and msg_obg.sender != ServiceSenderEnum.ML.value:
                 await process_shut_state(msg.value, producer_state)
     finally:
         await state_consumer.stop()

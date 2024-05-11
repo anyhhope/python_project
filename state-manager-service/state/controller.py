@@ -15,8 +15,12 @@ async def process(msg : MessageState):
     msg_obg: MessageState = SimpleNamespace(**msg)
     db_conn: PoolConnectionProxy = await get_connection()
 
+    if msg_obg.error:
+        error = True
+
     if msg_obg.state == StateEnum.SHUTDOWN:
         await update_row(db_conn, row_id=int(msg_obg.id), new_state=StateEnum.SHUTDOWN_PROCESS.value)
+        service = msg_obg.sender
         print(f"Updated state {StateEnum.SHUTDOWN_PROCESS.value} in {msg_obg.id} row")
 
     if msg_obg.state == StateEnum.ML_PROCESS or msg_obg.state == StateEnum.RUNNER_PROCESS:
@@ -27,8 +31,6 @@ async def process(msg : MessageState):
         service = msg_obg.sender
         if inactive_services[service] == False:
             inactive_services[service] = True
-            if msg_obg.error:
-                error = True
         
         if all(value == True for value in inactive_services.values()):
             if error:
