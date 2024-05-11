@@ -16,25 +16,40 @@ async def produce(producer: AIOProducer, message_to_produce: Message):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-async def produce_from_outbox(db_conn, query_id):
-    row = db.get_row_from_outbox(db_conn)
-    producer: AIOProducer = get_query_producer()
-    message_to_produce: Message = {"id" : query_id, "rtsp_src" : row["rtsp_src"]}
-    await produce(producer, message_to_produce)
-    db.delete_row_from_outbox(db_conn, row["id"])
+async def produce_from_outbox(db_conn: PoolConnectionProxy, producer: AIOProducer, message_to_produce: Message):
+    try:
+        async with db_conn.transaction():
+            rows = await db.get_unprocessed_rows_from_outbox(db_conn)
+            print(rows)
+
+            for row in rows:
+                await produce(producer, message_to_produce)
+                await db.update_processed_rows_in_outbox(db_conn, row['id'])
+
+    except Exception as e:
+        print(f"Error occurred during message production or database update: {e}")
 
 
 async def process(db_conn: PoolConnectionProxy, query: QueryInit):
-    query_row = QueryDto(
-        rtsp_src = query.rtsp_src,
-        state = StateEnum.STARTUP_PROCESS.value,
-    )
-    new_id: int = await db.insert_new_row(db_conn, query_row)
-    print(new_id)
-    producer: AIOProducer = get_query_producer()
-    message_to_produce: Message = {"id" : new_id, "rtsp_src" : query.rtsp_src}
-    await produce(producer, message_to_produce)
-    return new_id
+    new_id: int = None 
+
+    try:
+        query_row = QueryDto(
+            rtsp_src=query.rtsp_src,
+            state=StateEnum.STARTUP_PROCESS.value,
+        )
+        new_id = await db.insert_rows_transaction(db_conn, query_row)
+        return new_id
+
+    except Exception as e:
+        raise e
+
+    finally:
+
+        producer: AIOProducer = get_query_producer()
+        message_to_produce: Message = {"id": str(new_id), "rtsp_src": query.rtsp_src}
+
+        await produce_from_outbox(db_conn, producer, message_to_produce)
 
 async def process_shutdown(db_conn: PoolConnectionProxy, query: QueryOnlyId):
     row_exists = await db.check_row_exists(db_conn, int(query.id))

@@ -50,7 +50,9 @@ class Database:
             await conn.execute('''
                 CREATE TABLE IF NOT EXISTS outbox (
                                 id SERIAL PRIMARY KEY,
-                                rtsp_src: text not null,
+                                query_id INTEGER not null,
+                                rtsp_src TEXT not null,
+                                processed BOOLEAN DEFAULT FALSE
                             );
             ''')  
 

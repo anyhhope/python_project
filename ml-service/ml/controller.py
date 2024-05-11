@@ -7,32 +7,12 @@ from config import cfg
 from minio_connection import s3
 from data import Database, PoolConnectionProxy, get_connection
 from . import db
-from models import DetectionDto
+from .models import DetectionDto
 from .consumer import AIOKafkaConsumer, deserializer
 from producer import AIOProducer, get_state_producer, produce
-from schema import MessageState, StateEnum, ServiceSenderEnum
+from .schema import MessageState, StateEnum, ServiceSenderEnum
 from types import SimpleNamespace
 from .processes_store import processes_store
-
-
-async def process(msg):
-    model = YOLO('./yolo_model/yolov9c.pt')
-    img_bytes = base64.b64decode(msg['frame'])
-    img = Image.open(BytesIO(img_bytes))
-
-
-    results = model([img]) 
-
-    # Process results list
-    for result in results:
-        boxes = result.boxes  # Boxes object for bounding box outputs
-        masks = result.masks  # Masks object for segmentation masks outputs
-        keypoints = result.keypoints  # Keypoints object for pose outputs
-        probs = result.probs  # Probs object for classification outputs
-        obb = result.obb  # Oriented boxes object for OBB outputs
-        result.show()  # display to screen
-        result.save(filename='result.jpg')  # save to disk
-    return 
 
 
 async def upload_img_to_s3(img, filename):
@@ -88,7 +68,9 @@ async def consume_shutdown():
 
     try:
         async for msg in state_consumer:
-            await process_shut_state(msg.value, producer_state)
+            msg_obg: MessageState = SimpleNamespace(**msg.value)
+            if msg_obg.state == StateEnum.SHUTDOWN.value:
+                await process_shut_state(msg.value, producer_state)
     finally:
         await state_consumer.stop()
         print(f"Consumer state stopped\n")

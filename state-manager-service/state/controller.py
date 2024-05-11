@@ -9,6 +9,9 @@ inactive_services = {"ml": False, "runner": False}
 error = False
 
 async def process(msg : MessageState):
+    global error
+    global inactive_services
+
     msg_obg: MessageState = SimpleNamespace(**msg)
     db_conn: PoolConnectionProxy = await get_connection()
 

@@ -38,7 +38,9 @@ async def consume_shutdown():
 
     try:
         async for msg in state_consumer:
-            await process_shut_state(msg.value, producer_state)
+            msg_obg: MessageState = SimpleNamespace(**msg.value)
+            if msg_obg.state == StateEnum.SHUTDOWN.value:
+                await process_shut_state(msg.value, producer_state)
     finally:
         await state_consumer.stop()
         print(f"Consumer state stopped\n")
