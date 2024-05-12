@@ -76,6 +76,7 @@ class CustomProcess(Process):
             await producerState.stop()
             await self.db_instance.disconnect()
             print(f"ML process {self.id} error : {e}")
+            self.kill()
                
 
     def send_message(self, msg: MessageConsume):

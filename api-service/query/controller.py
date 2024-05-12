@@ -64,5 +64,11 @@ async def process_shutdown(db_conn: PoolConnectionProxy, query: QueryOnlyId):
 
 
 async def get_detection_result(db_conn: PoolConnectionProxy, query_id):
-    result = await db.get_detection_results_by_query_id(db_conn, int(query_id))
+    state = await db.get_state_query_id(db_conn, int(query_id))
+    if state:
+        result = await db.get_detection_results_by_query_id(db_conn, int(query_id))
+    return result
+
+async def get_state(db_conn: PoolConnectionProxy, query_id):
+    result = await db.get_state_query_id(db_conn, int(query_id))
     return result

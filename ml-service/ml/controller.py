@@ -44,9 +44,9 @@ async def process_shut_state(msg: MessageState, producer_state: AIOProducer):
     if process_model and msg_obg.state == StateEnum.SHUTDOWN.value:
         custom_process = process_model.process
         custom_process.event.set()
+        process_model.process.kill()
         print(f"Process {msg_obg.id} stopped")
         await produce(producer_state, {"id" : msg_obg.id, "state" : StateEnum.INACTIVE_OK, "error": msg_obg.error, "sender": ServiceSenderEnum.ML.value}) 
-        process_model.process.kill()
         # processes_store.pop(str(msg_obg.id))
         
     return

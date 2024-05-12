@@ -47,9 +47,16 @@ async def check_row_exists(db: PoolConnectionProxy, row_id: int) -> bool:
     return result > 0
 
 async def get_detection_results_by_query_id(db: PoolConnectionProxy, query_id: int):
-    """Retrieve all rows from detection_result table with the specified query_id"""
+    """Получение всех записей результатов детекции по query_id"""
     query = 'SELECT * FROM detection_result WHERE query_id = $1'
     results = await db.fetch(query, query_id)
     return results
 
+async def get_state_query_id(db: PoolConnectionProxy, query_id: int):
+    """Получение стейта по query_id"""
+    query = 'SELECT state FROM stream_status WHERE id = $1'
+    state = await db.fetchval(query, query_id)
+    if state is None:
+        raise ValueError(f"No database entry query_id {query_id}")
+    return state
 
