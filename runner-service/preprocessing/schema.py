@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EncodedBytes
+from pydantic import BaseModel
 from enum import Enum
 
 # сообщение кафки

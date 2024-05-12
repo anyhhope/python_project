@@ -6,9 +6,6 @@ import asyncio
 from .producer import AIOProducer, get_query_producer, get_state_producer
 
 # бизнес-логика, принимает данные пишет в бд и кафку
-
-
-
 async def produce(producer: AIOProducer, message_to_produce: Message):
     try:
         await producer.send(value=message_to_produce)

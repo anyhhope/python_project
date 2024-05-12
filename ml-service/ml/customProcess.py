@@ -1,4 +1,3 @@
-import cv2
 from multiprocessing import Process, Event, Queue
 from .schema import MessageConsume, StateEnum, ServiceSenderEnum, MessageState
 from producer import AIOProducer
@@ -9,11 +8,7 @@ import base64
 from ultralytics import YOLO
 from PIL import Image
 from io import BytesIO
-from minio_connection import s3
-import numpy as np
 from data import get_connection, PoolConnectionProxy, Database
-from . import db
-from .models import DetectionDto
 from . import controller
 
 

@@ -26,7 +26,6 @@ class MessageState(BaseModel):
 
 # модельки для апи
 class QueryInit(BaseModel):
-    # state: StateEnum = Field(examples=[StateEnum.STARTUP.value])
     rtsp_src: str = Field(examples=["rtsp://fake.kerberos.io/stream"])
 
 class QueryOnlyId(BaseModel):

@@ -6,12 +6,8 @@ from data import get_connection
 import datetime
 
 
-# апи принимает данные используя методы контроллера
+# апи принимает данные и для обработки использует методы контроллера
 router = APIRouter(prefix="/api/stream", tags=["stream"])
-
-@router.get("/health")
-async def health():
-    return {"message": "Api-service is running"}
 
 @router.post("/init")
 async def process(query: schema.QueryInit,

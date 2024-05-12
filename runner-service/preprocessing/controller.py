@@ -1,11 +1,7 @@
-from .schema import MessageConsume, MessageState, StateEnum, ServiceSenderEnum
+from .schema import MessageState, StateEnum, ServiceSenderEnum
 from producer import AIOProducer, get_state_producer, produce
 from config import cfg
-import cv2
 from types import SimpleNamespace
-import asyncio
-from multiprocessing import Process
-from multiprocessing import Event
 from aiokafka import AIOKafkaConsumer
 from .consumer import deserializer
 from .processes_store import processes_store

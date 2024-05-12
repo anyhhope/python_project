@@ -1,6 +1,4 @@
-import logging
 import asyncpg as pg
-from typing import Any, AsyncGenerator, Generator
 from asyncpg.pool import PoolConnectionProxy
 from config import Config, cfg
 

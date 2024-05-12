@@ -1,11 +1,8 @@
-from ultralytics import YOLO
 from PIL import Image
-import base64
 from io import BytesIO
 import numpy as np
 from config import cfg
 from minio_connection import s3
-from data import Database, PoolConnectionProxy, get_connection
 from . import db
 from .models import DetectionDto
 from .consumer import AIOKafkaConsumer, deserializer
@@ -47,7 +44,6 @@ async def process_shut_state(msg: MessageState, producer_state: AIOProducer):
         process_model.process.kill()
         print(f"Process {msg_obg.id} stopped")
         await produce(producer_state, {"id" : msg_obg.id, "state" : StateEnum.INACTIVE_OK, "error": msg_obg.error, "sender": ServiceSenderEnum.ML.value}) 
-        # processes_store.pop(str(msg_obg.id))
         
     return
 

@@ -1,9 +1,7 @@
-import logging
 import asyncpg as pg
-from typing import Any, AsyncGenerator, Generator
+from typing import AsyncGenerator
 from asyncpg.pool import PoolConnectionProxy
 from config import Config, cfg
-from fastapi import FastAPI
 
 
 class Database:

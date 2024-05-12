@@ -1,8 +1,6 @@
 from aiokafka import AIOKafkaConsumer
-from config import Config, cfg
-import asyncio
+from config import Config
 import json
-from typing import Callable
 from .schema import MessageConsume
 from types import SimpleNamespace
 from .processes_store import processes_store
@@ -50,18 +48,6 @@ class AIOConsumer():
         finally:
             await self.stop()
             print(f"Consumer stopped, topic: {self.consume_topic}\n")
-
-
-        # if id_ in processes:
-        #     # Если процесс существует для данного ID, отправляем сообщение на обработку
-        #     print(f"Sending message {message} to existing process for id {id_}")
-        #     processes[id_].send((id_, message))
-        # else:
-        #     # Если процесса нет, создаем новый
-        #     print(f"Creating new process for id {id_}")
-        #     process = Process(target=asyncio.run, args=(message_handler(id_, message),))
-        #     process.start()
-        #     processes[id_] = process
 
 
                

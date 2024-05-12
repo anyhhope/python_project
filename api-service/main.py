@@ -1,9 +1,8 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 import uvicorn
 from query.router import router as query_router
 from contextlib import asynccontextmanager
 from data import db_instance
-from config import cfg
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

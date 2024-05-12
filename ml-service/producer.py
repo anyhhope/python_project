@@ -1,6 +1,5 @@
 from aiokafka import AIOKafkaProducer
 from config import Config, cfg
-import asyncio
 import json
 
 def serializer(value):

@@ -1,8 +1,6 @@
 from aiokafka import AIOKafkaConsumer
-from config import Config, cfg
-import asyncio
+from config import Config
 import json
-from typing import Callable
 from .schema import MessageConsume
 from types import SimpleNamespace
 from .processes_store import processes_store
