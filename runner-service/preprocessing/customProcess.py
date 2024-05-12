@@ -64,6 +64,7 @@ class CustomProcess(Process):
             await produce(producerFrame, state_message, topic=cfg.state_topic)
             await producerFrame.stop()
             print(f"Process {self.id} ERROR: {e}")
+            self.kill()
 
 
 #  process.event.set() - to stop loop -> stop process
