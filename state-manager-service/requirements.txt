@@ -1,0 +1,4 @@
+aiokafka
+pydantic
+pydantic_settings
+asyncpg

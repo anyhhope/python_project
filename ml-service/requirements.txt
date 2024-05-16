@@ -1,0 +1,7 @@
+aiokafka
+pydantic
+pydantic_settings
+asyncpg
+pillow
+minio
+ultralytics
